@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <script src="//api.bitrix24.com/api/v1/"></script>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 10px;
+            }
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+            select,
+            button {
+                padding: 6px;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <h3>Test</h3>
+        <script>
+            BX24.init(async function () {
+                BX24.callMethod(
+                    'method.get',
+                    {},
+                    function (result) {
+                        if (result.error()) console.error(result.error());
+                        else console.log(result.data());
+                    }
+                );
+
+                currentDealId = BX24.placement.info();
+                console.log(currentDealId);
+                BX24.placement.getInterface((result) => {
+                    console.log(result);
+                });
+
+                BX24.callMethod('userfieldtype.list', {}, function (result) {
+                    if (result.error()) console.error(result.error());
+                    else console.log(result.data());
+                });
+
+                BX24.callMethod(
+                    'crm.deal.userfield.list',
+                    {
+                        order: { SORT: 'ASC' },
+                        filter: { MANDATORY: 'N' },
+                    },
+                    function (result) {
+                        if (result.error()) console.error(result.error());
+                        else {
+                            console.log(result.data());
+                            if (result.more()) result.next();
+                        }
+                    }
+                );
+
+                BX24.callMethod(
+                    'lists.get',
+                    {
+                        IBLOCK_TYPE_ID: 'lists',
+                    },
+                    function (result) {
+                        if (result.error()) alert('Error: ' + result.error());
+                        else console.log(result.data());
+                    }
+                );
+
+                BX24.callMethod(
+                    'user.get',
+                    {
+                        SORT: 'ID',
+                        ORDER: 'asc',
+                    },
+                    function (r) {
+                        const select = document.getElementById('addressSelect');
+                        select.innerHTML = '';
+
+                        const items = r.data();
+                        if (items.length === 0) {
+                            select.innerHTML =
+                                '<option>Нет адресов для этой компании</option>';
+                            return;
+                        }
+
+                        items.forEach((item) => {
+                            const option = document.createElement('option');
+                            option.value = item.ID;
+                            option.textContent = item.NAME;
+                            select.appendChild(option);
+                        });
+
+                        select.addEventListener('change', function () {
+                            selectedAddressId = this.value;
+                            selectedAddressName =
+                                this.options[this.selectedIndex].text;
+                        });
+                    }
+                );
+
+                // BX24.installFinish();
+            });
+        </script>
+    </body>
+</html>
